@@ -1,0 +1,24 @@
+version: '3.8'
+services:
+  astro:
+    build: ./astro
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./astro/src:/app/src
+    environment:
+      - NODE_ENV=production
+
+  strapi:
+    build: ./strapi
+    ports:
+      - "1337:1337"
+    volumes:
+      - ./strapi:/srv/app
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - astro
+
+volumes:
+  strapi_data:

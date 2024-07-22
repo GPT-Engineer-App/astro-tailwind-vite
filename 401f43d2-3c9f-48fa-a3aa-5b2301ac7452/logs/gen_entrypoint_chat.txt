@@ -1,0 +1,136 @@
+
+2024-07-22T13:14:42.911381
+================================ System Message ================================
+
+You will get information about a codebase that is currently on disk in the current folder.
+The user will ask you to write a script that runs the code in a specific way.
+You will answer with code blocks that include all the necessary terminal commands.
+Do not install globally. Do not use sudo.
+Do not explain the code, just give the commands.
+Do not use placeholders, use example values (like . for a folder argument) if necessary.
+
+
+================================ Human Message =================================
+
+
+        Make a unix script that
+        a) installs dependencies
+        b) runs all necessary parts of the codebase (in parallel if necessary)
+        
+Information about the codebase:
+
+```
+File: docker-compose.yml
+1 version: '3.8'
+2 services:
+3   astro:
+4     build: ./astro
+5     ports:
+6       - "3000:3000"
+7     volumes:
+8       - ./astro/src:/app/src
+9     environment:
+10       - NODE_ENV=production
+11 
+12   strapi:
+13     build: ./strapi
+14     ports:
+15       - "1337:1337"
+16     volumes:
+17       - ./strapi:/srv/app
+18     environment:
+19       - NODE_ENV=production
+20     depends_on:
+21       - astro
+22 
+23 volumes:
+24   strapi_data:
+
+File: astro.config.mjs
+1 import { defineConfig } from 'astro/config';
+2 import tailwind from '@astrojs/tailwind';
+3 
+4 export default defineConfig({
+5   integrations: [tailwind()],
+6 });
+
+File: src/pages/index.astro
+1 ---
+2 import Header from '../components/Header.astro';
+3 ---
+4 <html>
+5 <head>
+6   <title>RoPay</title>
+7 </head>
+8 <body>
+9   <Header />
+10   <!-- Additional content will go here -->
+11 </body>
+12 </html>
+
+File: src/components/Header.astro
+1 <div class="header">
+2   <h1>RoPay – cea mai simplă plată. Instant.</h1>
+3   <!-- Rotating messages logic will be implemented here -->
+4 </div>
+
+File: strapi/config/server.js
+1 module.exports = ({ env }) => ({
+2   host: env('HOST', '0.0.0.0'),
+3   port: env.int('PORT', 1337),
+4 });
+
+File: tailwind.config.js
+1 module.exports = {
+2   content: ["./src/**/*.{astro,js}"],
+3   theme: {
+4     extend: {
+5       colors: {
+6         teal: {
+7           DEFAULT: '#064E3B',
+8         },
+9       },
+10     },
+11   },
+12   plugins: [require('flowbite/plugin')],
+13 };
+
+File: astro/Dockerfile
+1 FROM node:14
+2 WORKDIR /app
+3 COPY package*.json ./
+4 RUN npm install
+5 COPY . .
+6 CMD ["npm", "start"]
+
+File: strapi/Dockerfile
+1 FROM strapi/base
+2 WORKDIR /srv/app
+3 COPY package*.json ./
+4 RUN npm install
+5 COPY . .
+6 CMD ["strapi", "develop"]
+
+```
+
+================================== Ai Message ==================================
+
+```bash
+#!/bin/bash
+
+# Step a: Install Docker and Docker Compose if not already installed
+if ! command -v docker &> /dev/null
+then
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sh get-docker.sh
+fi
+
+if ! command -v docker-compose &> /dev/null
+then
+    curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    chmod +x /usr/local/bin/docker-compose
+fi
+
+# Step b: Run the codebase
+docker-compose up --build
+```
